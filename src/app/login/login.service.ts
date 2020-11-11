@@ -1,0 +1,25 @@
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class LoginService {
+  private _usuarioLoggeado=true;
+  private _usuarioId=1;
+  get usuarioLoggeado(){
+    return this.usuarioLoggeado;
+  }
+
+  get usuarioId(){
+    return this._usuarioId;
+  }
+  constructor() { }
+
+  login(){
+    this._usuarioLoggeado=true;
+  }
+
+  logout(){
+    this._usuarioLoggeado=false;
+  }
+}

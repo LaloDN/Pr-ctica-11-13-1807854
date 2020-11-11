@@ -1,0 +1,95 @@
+import { FnParam} from '@angular/compiler/src/output/output_ast';
+import { Injectable } from '@angular/core';
+import { Lugar } from './lugar.model';
+import { LoginService } from './../login/login.service';
+import { BehaviorSubject } from 'rxjs';
+import { take, map,tap ,delay, switchMap} from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+
+interface LugarData{
+  descripcion: string;
+  disponibleDesde: string;
+  disponibleHasta: string;
+  id: number;
+  imageUrl: string;
+  precio: number;
+  titulo: string;
+  usuarioId:number;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+
+
+export class LugaresService {
+
+  private _lugares = new BehaviorSubject<Lugar[]>([
+    new Lugar(1,'Quinta Gonzales', 'Quinta con excelente ubicación', 'https://img10.naventcdn.com/avisos/18/00/52/30/54/90/1200x1200/63671397.jpg',1200),
+    new Lugar(2, 'Depto. Las torres', 'Apartamento con excelente ubicación', 'https://img10.naventcdn.com/avisos/18/00/32/55/97/00/720x523/144271181.jpg',2400),
+    new Lugar(3, 'Cumbres Elite', 'Apartament con excelente ubicación', 'https://cf.bstatic.com/images/hotel/max1024x786/174/174826075.jpg',1800),
+  ]);
+
+  get lugares(){
+    return this._lugares.asObservable;
+  }
+  constructor(private loginService: LoginService, private http: HttpClient) { }
+
+  fetchLugares(){
+    return this.http.get<{[key:string]:LugarData}>('https://proyecto-1807854.firebaseio.com/ofertas-lugares.json').pipe(map(dta=>{
+      const lugares =[];
+      for(const key in dta){
+        if(dta.hasOwnProperty(key)){
+          lugares.push(
+            //dta
+            new Lugar(dta[key].id,dta[key].titulo,dta[key].descripcion,dta[key].imageUrl,dta[key].precio, new Date(dta[key].disponibleDesde),new Date(dta[key].disponibleHasta),dta[key].usuarioId,key)
+          )
+        }
+      }
+      return lugares;
+    }),
+      tap(lugares=>{
+        this._lugares.next(lugares)
+      })
+    );
+  }
+  
+  getLugar(id: number){
+    return this.lugares.pipe(take(1), map(lugares => {
+      return {...lugares.find(lu=>lu.id===id)};
+    }));
+  }
+
+  addLugar(titulo: string, descripcion: string, precio: number, disponibleDesde:Date, disponibleHasta:Date){
+    const newLugar= new Lugar(
+      Math.random(),
+      titulo,
+      descripcion,
+      'https://img10.naventcdn.com/avisos/18/00/53/55/97/00/720x532/144271181.jpg',
+      precio,
+      disponibleDesde,
+      disponibleHasta,
+      this.loginService.usuarioId,
+      ''
+    );
+      this.http.post<any>('https://proyecto-1807854.firebaseio.com/ofertas-lugares.json',{...new Lugar, firebaseId:null}).subscribe(data=>{
+      this._lugares.next(lugares.concat(newLugar));
+     })
+  }
+
+  updateLugar(lugarId: string, titulo: string, descripcion: string){
+    let nuevosLugares: Lugar[];
+    return this.lugares.pipe(take(1),
+    switchMap(lugares=>{
+      const index= lugares.findIndex(lu=>lu.firebaseId===lugarId);
+      nuevosLugares=[...lugares];
+      const old= nuevosLugares[index];
+      nuevosLugares[index]=new Lugar(old.id, titulo, descripcion, old.imageUrl, old.precio, old.disponibleDesde, old.disponibleHasta, old.usuarioId,'');
+      return this.http.put('https://proyecto-1807854.firebaseio.com/ofertas-lugares/${lugarId}.json',{...nuevosLugares[index]});
+    }),tap(()=>{
+      this._lugares.next(nuevosLugares);
+    })
+    );
+  }  
+  
+}
