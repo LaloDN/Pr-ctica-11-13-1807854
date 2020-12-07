@@ -1,5 +1,5 @@
 import { Lugar } from './../../lugar.model';
-import { NavController, LoadingController } from '@ionic/angular';
+import { NavController, LoadingController, AlertController } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LugaresService } from './../../lugares.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
@@ -16,6 +16,8 @@ export class EditarOfertaPage implements OnInit, OnDestroy{
   lugar: Lugar;
   form: FormGroup;
   lugarSub: Subscription;
+  isLoading=false;
+  lugarFirebaseId:string;
 
   constructor(
     private route:ActivatedRoute,
@@ -23,6 +25,7 @@ export class EditarOfertaPage implements OnInit, OnDestroy{
     private navCtrl: NavController,
     private loadingCtrl: LoadingController,
     private router: Router,
+    private alertCtrl:AlertController
   ){}
 
   ngOnInit() {
@@ -41,7 +44,9 @@ export class EditarOfertaPage implements OnInit, OnDestroy{
           this.router.navigate(['/lugares/tabs/ofertas']);
         });
       });
-      this.lugarSub=this.lugarService.getLugar(+param.get('lugarId')).subscribe(lugar=>{
+      this.lugarFirebaseId=param.get('lugarId');
+      this.isLoading=true;
+      this.lugarSub=this.lugarService.getLugar(param.get('lugarId')).subscribe(lugar=>{
         this.lugar= lugar;
         this.form=new FormGroup({
           titulo:new FormControl(this.lugar.titulo,{
@@ -51,6 +56,8 @@ export class EditarOfertaPage implements OnInit, OnDestroy{
             updateOn:'blur', validators:[Validators.required, Validators.maxLength(180)]
           })
         });
+        this.isLoading=false;
+        
       });
     });
   }

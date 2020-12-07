@@ -11,5 +11,6 @@ export class Reservacion{
         public huespedes: number,
         public desde: Date,
         public hasta: Date,
+        public firebaseId: string
     ){}
 }

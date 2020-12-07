@@ -13,12 +13,19 @@ export class ReservacionesPage implements OnInit, OnDestroy {
 
   reservacionesCargadas: Reservacion[];
   private reservacionSub: Subscription;
+  isLoading=false;
 
   constructor(private reservacionService: ReservacionService, private loadingCtrl: LoadingController) { }
 
   ngOnInit() {
     this.reservacionSub=this.reservacionService.reservaciones.subscribe(rsvs=>{
       this.reservacionesCargadas=rsvs;
+    })
+  }
+  ionViewWillEnter(){
+    this.isLoading=true;
+    this.reservacionService.fetchReservaciones().subscribe(()=>{
+      this.isLoading=false;
     })
   }
 
@@ -28,11 +35,11 @@ export class ReservacionesPage implements OnInit, OnDestroy {
     }
   }
 
-  onRemoveReservacion(id: number, slidignEl:IonItemSliding){
+  onRemoveReservacion(firebaseId:string, slidignEl:IonItemSliding){
   slidignEl.close();
   this.loadingCtrl.create({message:'cancelando reservación...'}).then(loadingEl=>{
     loadingEl.present();
-    this.reservacionService.cancelarReservacion(id).subscribe((){
+    this.reservacionService.cancelarReservacion(firebaseId).subscribe((){
       loadingEl.dismiss();
     });
   })

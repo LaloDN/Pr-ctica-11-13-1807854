@@ -1,3 +1,4 @@
+import { LugarUbicacion } from './location.model';
 export class Lugar{
     constructor(
         public id: number,
@@ -9,5 +10,6 @@ export class Lugar{
         public disponibleHasta: Date,
         public usuarioId: number,
         public firebaseId: String,
+        public ubcacion: LugarUbicacion
     ){}
 }

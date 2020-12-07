@@ -5,7 +5,7 @@ import { Lugar } from './../../lugar.model';
 import { LugaresService } from './../../lugares.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute} from '@angular/router';
-import { ActionSheetController, NavController, ModalController, LoadingController } from '@ionic/angular';
+import { ActionSheetController, NavController, ModalController, LoadingController, AlertController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 
 
@@ -18,6 +18,7 @@ export class DetalleLugarPage implements OnInit, OnDestroy {
 
   lugarActual: Lugar;
   lugarSub: Subscription;
+  isLoading=false;
 
   constructor(
     private navCtrl: NavController,
@@ -27,6 +28,7 @@ export class DetalleLugarPage implements OnInit, OnDestroy {
     private actionSheetCtrl: ActionSheetController,
     private reservacionService: ReservacionService,
     private loadingCtrl: LoadingController,
+    private alertCtrl: AlertController
   ){}
 
   ngOnInit() {
@@ -35,9 +37,23 @@ export class DetalleLugarPage implements OnInit, OnDestroy {
         this.navCtrl.navigateBack('/lugares/tabs/busqueda');
         return;
       }
-      this.lugarService.getLugar(+paraMap.get('lugarId')).subscribe(lugar=>{
+      this.lugarSub=this.lugarService.getLugar(paramMap.get('lugarID')).subscribe(lugar=>{
         this.lugarActual=lugar;
-      });
+        this.isLoading=false;
+      }, error=>{
+        this.alertCtrl.create({
+          header: 'Error',
+          message:'Error al obtener el lugar !',
+          buttons:[
+            {text:'Ok',handler:()=>{
+              this.router.navigate(['lugares/tabs/busqueda']);
+            }}
+          ]
+        }).then(alertEl=>{
+          alertEl.present();
+        });
+      }
+      );
     });
   }
 

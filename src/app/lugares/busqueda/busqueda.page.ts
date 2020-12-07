@@ -19,6 +19,7 @@ export class BusquedaPage implements OnInit, OnDestroy {
   lugaresListados: Lugar[];
   lugaresRelevantes: Lugar[];
   private lugaresSub: Subscription;
+  isLoading=false;
 
   constructor( private lugaresService: LugaresService, private menuCtrl: MenuController, private loginService: LoginService){}
 
@@ -28,6 +29,13 @@ export class BusquedaPage implements OnInit, OnDestroy {
       this.lugaresRelevantes=this.lugaresCargados;
       this.lugaresListados=this.lugaresRelevantes.slice(1);
     });
+  }
+
+  ionViewCanEnter(){
+   this.isLoading=true;
+   this.lugaresService.fetchLugares().subscribe(()=>{
+     this.isLoading=false;
+   });
   }
 
   ngOnDestroy(){

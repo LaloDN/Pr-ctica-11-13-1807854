@@ -37,8 +37,7 @@ export class OfertasPage implements OnInit {
     }
   }
   
-  onEdit(id:number){
-    this.router.navigate(['/','lugares','tabes','ofertas','edits','id']);
+  onEdit(firebaseId:string){
+    this.router.navigate(['/','lugares','tabs','ofertas','edit','firebaseId']);
   }
-
 }

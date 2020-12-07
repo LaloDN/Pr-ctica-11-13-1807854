@@ -2,7 +2,7 @@ import { FnParam} from '@angular/compiler/src/output/output_ast';
 import { Injectable } from '@angular/core';
 import { Lugar } from './lugar.model';
 import { LoginService } from './../login/login.service';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { take, map,tap ,delay, switchMap} from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 
@@ -54,12 +54,12 @@ export class LugaresService {
     );
   }
   
-  getLugar(id: number){
-    return this.lugares.pipe(take(1), map(lugares => {
-      return {...lugares.find(lu=>lu.id===id)};
-    }));
+  getLugar(firebaseId: string){
+    return this.http.get<LugarData>('https://proyecto-1807854.firebaseio.com/ofertas-lugares/${firebaseId}.json').pipe(map(dta=>{
+      return new Lugar (dta.id,dta.titulo,dta.descripcion,dta.imageUrl,dta.precio,newDate(dta.disponibleDesde),newDATE(dta.disponibleHasta),dta.usuarioId,firebaseId);
+    })
+    );
   }
-
   addLugar(titulo: string, descripcion: string, precio: number, disponibleDesde:Date, disponibleHasta:Date){
     const newLugar= new Lugar(
       Math.random(),
@@ -80,6 +80,14 @@ export class LugaresService {
   updateLugar(lugarId: string, titulo: string, descripcion: string){
     let nuevosLugares: Lugar[];
     return this.lugares.pipe(take(1),
+    switchMap(lugares =>{
+      if(lugares || lugares.length <=0){
+        return this.fetchLugares();
+      }
+      else{
+        return of(lugares);
+      }
+    }),
     switchMap(lugares=>{
       const index= lugares.findIndex(lu=>lu.firebaseId===lugarId);
       nuevosLugares=[...lugares];
